@@ -1,25 +1,32 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
 
-// Wait for the deviceready event before using any of Cordova's device APIs.
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 document.addEventListener('deviceready', onDeviceReady, false);
+
+const TASQUES = "tasques";
+
+function refresh_view(tasques){
+    //buidar tasklist
+    $('li').remove();
+
+    //omplir dades
+    var cont =0;
+    for(const tasca of tasques){
+        cont++;
+        $('ul').append("<li id='"+cont+"'class='ui-last-child'><a class='ui-btn' href='#'>"+tasca+"<button class='deleteButton'><img src='../img/delete.png' alt='x' /></button></a></li>");
+        
+    }
+    //ESBORRAR TASCA
+    $(".deleteButton").click(deleteElement);
+}   
+
+function deleteElement() {
+    var element = $(this).parent().parent().attr('id');
+    var dades = JSON.parse(localStorage.getItem(TASQUES));
+    dades.splice(element-1, 1);
+    localStorage.setItem(TASQUES, JSON.stringify(dades));
+
+    refresh_view(dades);
+}
 
 function onDeviceReady() {
     // Cordova is now initialized. Have fun!
@@ -28,13 +35,24 @@ function onDeviceReady() {
     // aquest tros de codi el comentem pq l'element "deviceready" ja no existeix
     //document.getElementById('deviceready').classList.add('ready');
 
+    // TODO: inicialitzar array tasques al localStorage si no existeix
+    if(!localStorage.getItem(TASQUES)) {
+        localStorage.setItem(TASQUES, JSON.stringify([]));
+    }
+
     // AFEGIR TASCA
     $("#inputButton").click(function() {
         // pillem text de l'input
         var text = $('#taskInput').val();
-        //alert("insertar task: "+text);
+        // agafem les dades del localStorage i afegim el nou text a la llista, tornat-la a guardar a LS
+        var dades = JSON.parse(localStorage.getItem(TASQUES));
+        dades.push(text);
+        localStorage.setItem(TASQUES, JSON.stringify(dades));
 
-        // afegim el text de l'input a la "listview" (és un UL i només hi ha un)
-        $('ul').append("<li class='ui-last-child'><a class='ui-btn' href='#'>"+text+"</a></li>");
+        refresh_view(dades);
     });
-}
+
+    //inicialitzem tasklist amb les dades existents
+    var dades = JSON.parse(localStorage.getItem(TASQUES));
+    refresh_view(dades);
+} 
